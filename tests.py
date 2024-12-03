@@ -24,41 +24,38 @@ class TestBooksCollector:
     # напиши свои тесты ниже
     # чтобы тесты были независимыми в каждом из них создавай отдельный экземпляр класса BooksCollector()
 
-    def test_add_new_book_symbols_more_41(self, collector):
-        collector.add_new_book('Тушеные оранжевые огурцы в кафе "Весь станок')
-        assert len(collector.get_books_genre()) == 0
+    @pytest.mark.parametrize(
+        'invalid_name',
+        [
+            'Тушеные оранжевые огурцы в кафе "Весь станок"',
+            '',
+            'Гордость и предубеждение и зомби'
+        ]
+    )
+    def test_add_new_book_invalid_name(self, collector, invalid_name):
+        collector.add_new_book('Гордость и предубеждение и зомби')
+        collector.add_new_book(invalid_name)
+        assert len(collector.get_books_genre()) == 1
 
     def test_set_book_genre_set_horrors(self,collector):
         collector.add_new_book('Гордость и предубеждение и зомби')
         collector.set_book_genre('Гордость и предубеждение и зомби', 'Ужасы')
-
-        assert collector.get_book_genre('Гордость и предубеждение и зомби') == 'Ужасы'
+        assert collector.get_books_genre() == {'Гордость и предубеждение и зомби':'Ужасы'}
 
     def test_get_book_genre_get_detective(self, collector):
         collector.add_new_book('Что делать, когда не знаешь что делать')
         collector.set_book_genre('Что делать, когда не знаешь что делать', 'Детективы')
+        assert collector.get_book_genre('Что делать, когда не знаешь что делать') == 'Детективы'
 
-        assert collector.books_genre.get('Что делать, когда не знаешь что делать') == 'Детективы'
-
-    @pytest.mark.parametrize(
-        'name, genre',
-        [
-            ['Что делать, когда не знаешь что делать', 'Детективы'],
-            ['Гордость и предубеждение и зомби', 'Ужасы'],
-            ['Пособие по взрослой жизни', 'Ужасы']
-        ]
-    )
-
-    def test_get_books_with_specific_genre_get_horrors(self, collector, name, genre):
-        collector.add_new_book(name)
-        collector.set_book_genre(name, genre)
-        list_names_horrors = []
-        for i in name, genre:
-            horrors_book = collector.get_books_with_specific_genre('Ужасы')
-            list_names_horrors.append(horrors_book)
-
-        assert len(list_names_horrors) == 2
-
+    def test_get_books_with_specific_genre_get_horrors(self, collector):
+        books_name = ['Что делать, когда не знаешь что делать', 'Гордость и предубеждение и зомби', 'Пособие по взрослой жизни']
+        for book_name in books_name:
+            collector.add_new_book(book_name)
+        collector.set_book_genre('Что делать, когда не знаешь что делать', 'Детективы')
+        collector.set_book_genre('Гордость и предубеждение и зомби', 'Ужасы')
+        collector.set_book_genre('Пособие по взрослой жизни', 'Ужасы')
+        horrors_book = collector.get_books_with_specific_genre('Ужасы')
+        assert len(horrors_book) == 2
 
     def test_get_books_genre(self, collector):
         list_of_books = ['Что делать, когда не знаешь что делать', 'Гордость и предубеждение и зомби', 'Пособие по взрослой жизни']
@@ -66,22 +63,15 @@ class TestBooksCollector:
             collector.add_new_book(i)
         assert len(collector.get_books_genre()) == 3
 
-    @pytest.mark.parametrize(
-        'name, genre',
-        [
-            ['Алиса в стране', 'Комедии'],
-            ['Том и Джерри и еще Том', 'Мультфильмы'],
-            ['Пособие по взрослой жизни', 'Ужасы']
-        ]
-    )
-    def test_get_books_for_children_with_valid_book(self, collector, name, genre):
-        collector.add_new_book(name)
-        collector.set_book_genre(name, genre)
-        list_names_for_children = []
-        for i in name, genre:
-            child_books = collector.get_books_for_children()
-            list_names_for_children.append(child_books)
-        assert len(list_names_for_children) == 2
+    def test_get_books_for_children_with_valid_book(self, collector):
+        books_name = ['Алиса в стране', 'Том и Джерри и еще Том', 'Пособие по взрослой жизни']
+        for book_name in books_name:
+            collector.add_new_book(book_name)
+        collector.set_book_genre('Алиса в стране', 'Комедии')
+        collector.set_book_genre('Том и Джерри и еще Том', 'Мультфильмы')
+        collector.set_book_genre('Пособие по взрослой жизни', 'Ужасы')
+        child_books = collector.get_books_for_children()
+        assert len(child_books) == 2
 
     def test_add_book_in_favorites_new_book(self, collector):
         collector.add_new_book('Алиса в стране')
@@ -99,7 +89,6 @@ class TestBooksCollector:
         collector.add_book_in_favorites('Алиса в стране')
         collector.delete_book_from_favorites('Алиса в стране')
         assert len(collector.favorites) == 0
-
 
     def test_get_list_of_favorites_books(self, collector):
         list_fav = ['Алиса в стране', 'Том и Джерри и еще Том', 'Пособие по взрослой жизни', 'Гордость и предубеждение и зомби', 'Азбука']
